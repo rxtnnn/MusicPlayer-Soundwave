@@ -1,13 +1,102 @@
-<ion-header [translucent]="true">
+<!-- settings.page.html -->
+<ion-header [translucent]="true" [class.dark-header]="darkMode$ | async">
   <ion-toolbar>
-    <ion-title>settings</ion-title>
+    <ion-title>Settings</ion-title>
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">settings</ion-title>
-    </ion-toolbar>
-  </ion-header>
+<ion-content [fullscreen]="true" [class.dark-content]="darkMode$ | async">
+  <div class="settings-container">
+    <!-- Theme Settings -->
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Appearance</ion-card-title>
+      </ion-card-header>
+
+      <ion-card-content>
+        <ion-item lines="none">
+          <ion-label>Dark Mode</ion-label>
+          <ion-toggle
+            [checked]="darkMode$ | async"
+            (ionChange)="toggleDarkMode()"
+            slot="end">
+          </ion-toggle>
+        </ion-item>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Playback Settings -->
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Playback</ion-card-title>
+      </ion-card-header>
+
+      <ion-card-content>
+        <ion-item>
+          <ion-label>Audio Quality</ion-label>
+          <ion-select [(ngModel)]="audioQuality" (ionChange)="saveAudioQuality()">
+            <ion-select-option value="low">Low</ion-select-option>
+            <ion-select-option value="medium">Medium</ion-select-option>
+            <ion-select-option value="high">High</ion-select-option>
+            <ion-select-option value="lossless">Lossless</ion-select-option>
+          </ion-select>
+        </ion-item>
+
+        <ion-item>
+          <ion-label>Equalizer</ion-label>
+          <ion-toggle
+            [(ngModel)]="equalizerEnabled"
+            (ionChange)="toggleEqualizer()"
+            slot="end">
+          </ion-toggle>
+        </ion-item>
+
+        <ion-item class="crossfade-item">
+          <ion-label>
+            <div>Crossfade</div>
+            <div class="value-display">{{ crossfadeDuration }}s</div>
+          </ion-label>
+          <ion-range
+            min="0"
+            max="12"
+            step="1"
+            snaps="true"
+            [(ngModel)]="crossfadeDuration"
+            (ionChange)="saveCrossfade()"
+            class="crossfade-range">
+          </ion-range>
+        </ion-item>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Storage Settings -->
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Storage</ion-card-title>
+      </ion-card-header>
+
+      <ion-card-content>
+        <ion-button expand="block" (click)="clearCache()" fill="outline">
+          <ion-icon name="trash-outline" slot="start"></ion-icon>
+          Clear Cache
+        </ion-button>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- About -->
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>About</ion-card-title>
+      </ion-card-header>
+
+      <ion-card-content>
+        <div class="about-content">
+          <h2>Melodify Music Player</h2>
+          <p>Version 1.0.0</p>
+          <p class="about-description">A powerful music player that supports local files and streaming services.</p>
+          <p class="about-description">Supported formats: MP3, AAC, WAV, OGG, FLAC, Opus</p>
+        </div>
+      </ion-card-content>
+    </ion-card>
+  </div>
 </ion-content>

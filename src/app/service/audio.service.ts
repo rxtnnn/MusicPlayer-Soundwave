@@ -1,8 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Platform } from '@ionic/angular';
-import { Media, MediaObject } from '@capacitor/media';
-import { Filesystem } from '@capacitor/filesystem';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { Capacitor } from '@capacitor/core';
+import { BehaviorSubject } from 'rxjs';
 import { Track } from '../models/track.model';
 import { StorageService } from './storage.service';
 
@@ -44,21 +43,18 @@ export class AudioService {
   });
 
   public state$ = this.state.asObservable();
-
-  // Audio player instance
-  private mediaObject: MediaObject | null = null;
   private audioElement: HTMLAudioElement | null = null;
   private updateTimer: any = null;
   private recentlyPlayed: Track[] = [];
   private maxRecentlyPlayed = 20;
   private lastPosition: number = 0; // To save position for resuming
+  private isNative: boolean = false;
 
   constructor(
     private platform: Platform,
-    private media: Media,
-    private fileSystem: Filesystem,
     private storage: StorageService
   ) {
+    this.isNative = Capacitor.isNativePlatform();
     this.initialize();
   }
 
@@ -78,33 +74,31 @@ export class AudioService {
       }
     }
 
-    // Initialize HTML5 Audio player for web/PWA
-    if (this.platform.is('mobileweb') || this.platform.is('desktop')) {
-      this.audioElement = new Audio();
+    // Initialize HTML5 Audio player
+    this.audioElement = new Audio();
 
-      // Setup event listeners
-      this.audioElement.addEventListener('play', () => this.updatePlayerState({ isPlaying: true }));
-      this.audioElement.addEventListener('pause', () => this.updatePlayerState({ isPlaying: false }));
-      this.audioElement.addEventListener('ended', () => this.handleTrackEnded());
-      this.audioElement.addEventListener('loadstart', () => this.updatePlayerState({ isLoading: true }));
-      this.audioElement.addEventListener('canplay', () => this.updatePlayerState({ isLoading: false }));
-      this.audioElement.addEventListener('timeupdate', () => {
-        if (this.audioElement) {
-          this.updatePlayerState({
-            currentTime: this.audioElement.currentTime,
-            duration: this.audioElement.duration || 0
-          });
-        }
-      });
-      this.audioElement.addEventListener('error', (e) => {
-        console.error('Audio playback error', e);
+    // Setup event listeners
+    this.audioElement.addEventListener('play', () => this.updatePlayerState({ isPlaying: true }));
+    this.audioElement.addEventListener('pause', () => this.updatePlayerState({ isPlaying: false }));
+    this.audioElement.addEventListener('ended', () => this.handleTrackEnded());
+    this.audioElement.addEventListener('loadstart', () => this.updatePlayerState({ isLoading: true }));
+    this.audioElement.addEventListener('canplay', () => this.updatePlayerState({ isLoading: false }));
+    this.audioElement.addEventListener('timeupdate', () => {
+      if (this.audioElement) {
         this.updatePlayerState({
-          error: 'Error playing audio file',
-          isLoading: false,
-          isPlaying: false
+          currentTime: this.audioElement.currentTime,
+          duration: this.audioElement.duration || 0
         });
+      }
+    });
+    this.audioElement.addEventListener('error', (e) => {
+      console.error('Audio playback error', e);
+      this.updatePlayerState({
+        error: 'Error playing audio file',
+        isLoading: false,
+        isPlaying: false
       });
-    }
+    });
   }
 
   /**
@@ -149,11 +143,8 @@ export class AudioService {
       // Update track's last played timestamp
       await this.updateTrackLastPlayed(track);
 
-      if (this.platform.is('mobileweb') || this.platform.is('desktop')) {
-        await this.playHtml5Audio(track);
-      } else {
-        await this.playNativeAudio(track);
-      }
+      // Play the audio using HTML5 Audio
+      await this.playHtml5Audio(track);
     } catch (error) {
       console.error('Error playing track', error);
       this.updatePlayerState({
@@ -164,7 +155,7 @@ export class AudioService {
   }
 
   /**
-   * Play audio using HTML5 Audio for web/PWA
+   * Play audio using HTML5 Audio
    */
   private async playHtml5Audio(track: Track): Promise<void> {
     if (!this.audioElement) {
@@ -172,94 +163,19 @@ export class AudioService {
     }
 
     // Set audio source
-    if (track.isLocal) {
-      // For local files, we need to handle differently based on platform
-      if (this.platform.is('desktop')) {
-        // Desktop PWA - hopefully using File System Access API
-        this.audioElement.src = track.url;
-      } else {
-        // Mobile web might need to convert blob URL
-        this.audioElement.src = track.url;
-      }
-    } else {
-      // Remote audio (streaming)
-      this.audioElement.src = track.url;
-    }
+    this.audioElement.src = track.url;
+
+    // Set volume
+    this.audioElement.volume = this.state.value.volume;
 
     // Load and play
     this.audioElement.load();
-    await this.audioElement.play();
-  }
-
-  /**
-   * Play audio using native Media plugin for mobile
-   */
-  private async playNativeAudio(track: Track): Promise<void> {
-    if (track.isLocal) {
-      // For local files on the device
-      this.mediaObject = this.media.create(track.url);
-    } else {
-      // For remote files (streaming)
-      this.mediaObject = this.media.create(track.url);
+    try {
+      await this.audioElement.play();
+    } catch (error) {
+      console.error('Error playing audio:', error);
+      throw error;
     }
-
-    // Setup event listeners for cordova media
-    this.mediaObject.onStatusUpdate.subscribe((status: any) => {
-      switch (status) {
-        case this.media.MEDIA_RUNNING:
-          this.updatePlayerState({ isPlaying: true, isLoading: false });
-          break;
-        case this.media.MEDIA_PAUSED:
-          this.updatePlayerState({ isPlaying: false });
-          break;
-        case this.media.MEDIA_STOPPED:
-          this.updatePlayerState({ isPlaying: false, currentTime: 0 });
-          break;
-      }
-    });
-
-    this.mediaObject.onSuccess.subscribe(() => {
-      console.log('Media playback finished successfully');
-      this.handleTrackEnded();
-    });
-
-    this.mediaObject.onError.subscribe((error: any) => {
-      console.error('Error playing media', error);
-      this.updatePlayerState({
-        error: 'Error playing audio file',
-        isLoading: false,
-        isPlaying: false
-      });
-    });
-
-    // Start playback
-    this.mediaObject.play();
-
-    // Start a timer to update current time (not provided by media plugin)
-    this.startTimeUpdateTimer();
-  }
-
-  /**
-   * Start a timer to update playback position (for native playback)
-   */
-  private startTimeUpdateTimer(): void {
-    if (this.updateTimer) {
-      clearInterval(this.updateTimer);
-    }
-
-    this.updateTimer = setInterval(() => {
-      if (this.mediaObject && this.state.value.isPlaying) {
-        this.mediaObject.getCurrentPosition().then((position: number) => {
-          if (position >= 0) {
-            this.updatePlayerState({
-              currentTime: position,
-              // We might not know duration initially with media plugin
-              duration: this.state.value.duration || 0
-            });
-          }
-        });
-      }
-    }, 1000);
   }
 
   /**
@@ -269,12 +185,6 @@ export class AudioService {
     if (this.updateTimer) {
       clearInterval(this.updateTimer);
       this.updateTimer = null;
-    }
-
-    if (this.mediaObject) {
-      this.mediaObject.stop();
-      this.mediaObject.release();
-      this.mediaObject = null;
     }
 
     if (this.audioElement) {
@@ -437,14 +347,6 @@ export class AudioService {
       return;
     }
 
-    if (this.mediaObject) {
-      this.mediaObject.pause();
-      // Save current position for resuming
-      this.mediaObject.getCurrentPosition().then((position: number) => {
-        this.lastPosition = position;
-      });
-    }
-
     if (this.audioElement) {
       this.audioElement.pause();
       this.lastPosition = this.audioElement.currentTime;
@@ -463,13 +365,14 @@ export class AudioService {
       return;
     }
 
-    if (this.mediaObject) {
-      this.mediaObject.play();
-      // No need to manually seek, the Media plugin remembers position
-    }
-
     if (this.audioElement) {
-      this.audioElement.play();
+      this.audioElement.play().catch(error => {
+        console.error('Error resuming playback:', error);
+        this.updatePlayerState({
+          error: 'Error resuming playback',
+          isPlaying: false
+        });
+      });
     }
 
     this.updatePlayerState({ isPlaying: true });
@@ -501,10 +404,6 @@ export class AudioService {
       position = currentState.duration;
     }
 
-    if (this.mediaObject) {
-      this.mediaObject.seekTo(position * 1000); // Convert to milliseconds
-    }
-
     if (this.audioElement) {
       this.audioElement.currentTime = position;
     }
@@ -518,10 +417,6 @@ export class AudioService {
   public setVolume(level: number): void {
     if (level < 0) level = 0;
     if (level > 1) level = 1;
-
-    if (this.mediaObject) {
-      // Media plugin doesn't have volume control, would need to use native audio APIs
-    }
 
     if (this.audioElement) {
       this.audioElement.volume = level;
@@ -562,8 +457,6 @@ export class AudioService {
     if (this.audioElement) {
       this.audioElement.playbackRate = rate;
     }
-
-    // Note: Media plugin doesn't support playback rate adjustment
 
     this.updatePlayerState({ playbackRate: rate });
   }

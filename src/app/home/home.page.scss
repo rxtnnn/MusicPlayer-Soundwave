@@ -1,27 +1,204 @@
-#container {
-  text-align: center;
+/* home.page.scss */
+@import "~bootstrap/scss/bootstrap";
 
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 50%;
-  transform: translateY(-50%);
+:host {
+  --card-background-light: #ffffff;
+  --card-background-dark: #2d2d2d;
+  --primary-color: #6200EA;
+  --primary-color-dark: #BB86FC;
 }
 
-#container strong {
-  font-size: 20px;
-  line-height: 26px;
+.dark-header {
+  --background: #1e1e1e;
+  --color: #ffffff;
 }
 
-#container p {
-  font-size: 16px;
-  line-height: 22px;
-
-  color: #8c8c8c;
-
-  margin: 0;
+.dark-content {
+  --background: #121212;
+  --color: #ffffff;
 }
 
-#container a {
-  text-decoration: none;
+.dark-item {
+  --background: #2d2d2d;
+  --color: #ffffff;
+
+  ion-note {
+    color: #bbbbbb;
+  }
+}
+
+.app-title {
+  display: flex;
+  align-items: center;
+
+  ion-icon {
+    margin-right: 8px;
+    font-size: 20px;
+  }
+}
+
+.content-container {
+  padding: 16px;
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 0;
+
+  ion-spinner {
+    margin-bottom: 12px;
+  }
+
+  p {
+    color: var(--ion-color-medium);
+  }
+}
+
+.music-section {
+  margin-bottom: 24px;
+
+  h2 {
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 16px;
+  }
+
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+
+    h2 {
+      margin-bottom: 0;
+    }
+  }
+
+  .track-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 16px;
+    margin-bottom: 16px;
+
+    .track-card {
+      cursor: pointer;
+      transition: transform 0.2s;
+
+      &:hover {
+        transform: translateY(-4px);
+
+        .play-overlay {
+          opacity: 1;
+        }
+      }
+
+      .track-artwork {
+        position: relative;
+        border-radius: 8px;
+        overflow: hidden;
+        aspect-ratio: 1;
+        margin-bottom: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+
+        img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+
+        .play-overlay {
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background-color: rgba(0, 0, 0, 0.4);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          opacity: 0;
+          transition: opacity 0.2s;
+
+          ion-icon {
+            font-size: 40px;
+            color: white;
+          }
+        }
+      }
+
+      .track-info {
+        .track-title {
+          font-weight: 500;
+          margin-bottom: 4px;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
+        .track-artist {
+          font-size: 14px;
+          color: var(--ion-color-medium);
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+      }
+    }
+  }
+
+  ion-list {
+    border-radius: 8px;
+    overflow: hidden;
+
+    ion-item {
+      --padding-start: 12px;
+      --inner-padding-end: 12px;
+
+      ion-thumbnail {
+        --border-radius: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: var(--ion-color-light);
+
+        .thumbnail-icon {
+          font-size: 24px;
+          color: var(--ion-color-medium);
+        }
+      }
+
+      .track-format {
+        font-size: 12px;
+        color: var(--ion-color-medium);
+      }
+    }
+  }
+
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 32px 16px;
+    background-color: var(--card-background-light);
+    border-radius: 8px;
+    text-align: center;
+
+    .dark-content & {
+      background-color: var(--card-background-dark);
+    }
+
+    ion-icon {
+      font-size: 48px;
+      color: var(--ion-color-medium);
+      margin-bottom: 16px;
+    }
+
+    p {
+      margin-bottom: 16px;
+      color: var(--ion-color-medium);
+    }
+  }
 }

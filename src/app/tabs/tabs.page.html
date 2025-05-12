@@ -1,13 +1,72 @@
-<ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-title>tabs</ion-title>
-  </ion-toolbar>
-</ion-header>
+<!-- This shows how to use the "Approach 2" from the previous example -->
+<!-- tabs.page.html -->
+<ion-tabs>
+  <!-- Tab bar at the bottom -->
+  <ion-tab-bar slot="bottom" [class.dark-theme]="isDarkMode$ | async">
+    <ion-tab-button tab="home">
+      <ion-icon name="home"></ion-icon>
+      <ion-label>Home</ion-label>
+    </ion-tab-button>
 
-<ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">tabs</ion-title>
-    </ion-toolbar>
-  </ion-header>
-</ion-content>
+    <ion-tab-button tab="search">
+      <ion-icon name="search"></ion-icon>
+      <ion-label>Search</ion-label>
+    </ion-tab-button>
+
+    <ion-tab-button tab="library">
+      <ion-icon name="library"></ion-icon>
+      <ion-label>Library</ion-label>
+    </ion-tab-button>
+
+    <ion-tab-button tab="settings">
+      <ion-icon name="settings"></ion-icon>
+      <ion-label>Settings</ion-label>
+    </ion-tab-button>
+  </ion-tab-bar>
+
+  <!-- Player bar (shown when a track is playing) -->
+  <ng-container *ngIf="playerState$ | async as playerState">
+    <div class="player-bar" *ngIf="playerState.currentTrack" [class.dark-theme]="isDarkMode$ | async">
+      <div class="progress-container" (click)="seekToPosition($event, playerState)">
+        <div class="progress-bar"
+             [style.width.%]="getProgress(playerState.currentTime, playerState.duration)">
+        </div>
+      </div>
+
+      <div class="player-content">
+        <!-- Track info -->
+        <div class="track-info">
+          <ion-thumbnail *ngIf="playerState.currentTrack.artwork">
+            <img [src]="playerState.currentTrack.artwork" alt="Album art">
+          </ion-thumbnail>
+          <div class="text-info">
+            <div class="track-title">{{ playerState.currentTrack.title }}</div>
+            <div class="track-artist">{{ playerState.currentTrack.artist }}</div>
+          </div>
+        </div>
+
+        <!-- Playback controls -->
+        <div class="playback-controls">
+          <ion-button fill="clear" size="small" (click)="playPrevious()">
+            <ion-icon slot="icon-only" name="play-skip-back"></ion-icon>
+          </ion-button>
+
+          <ion-button fill="clear" size="small" (click)="togglePlayPause()">
+            <ion-icon slot="icon-only"
+                      [name]="playerState.isPlaying ? 'pause' : 'play'">
+            </ion-icon>
+          </ion-button>
+
+          <ion-button fill="clear" size="small" (click)="playNext()">
+            <ion-icon slot="icon-only" name="play-skip-forward"></ion-icon>
+          </ion-button>
+        </div>
+
+        <!-- Time display -->
+        <div class="time-display">
+          {{ formatTime(playerState.currentTime) }} / {{ formatTime(playerState.duration) }}
+        </div>
+      </div>
+    </div>
+  </ng-container>
+</ion-tabs>

@@ -1,0 +1,148 @@
+/* tabs.page.scss */
+
+
+:host {
+  --player-height: 72px;
+  --progress-height: 4px;
+  --player-background-light: #ffffff;
+  --player-background-dark: #222428;
+  --primary-color: #6200EA;
+  --primary-color-dark: #BB86FC;
+  --text-color-light: #333333;
+  --text-color-dark: #ffffff;
+  --secondary-text-light: #666666;
+  --secondary-text-dark: #bbbbbb;
+}
+
+/* Player bar styles */
+.player-bar {
+  position: fixed;
+  bottom: var(--ion-tab-bar-height, 56px);
+  left: 0;
+  right: 0;
+  height: var(--player-height);
+  background-color: var(--player-background-light);
+  box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+  z-index: 10;
+  transition: all 0.3s ease;
+
+  &.dark-theme {
+    background-color: var(--player-background-dark);
+    color: var(--text-color-dark);
+  }
+
+  .progress-container {
+    width: 100%;
+    height: var(--progress-height);
+    background-color: #e0e0e0;
+    cursor: pointer;
+
+    .progress-bar {
+      height: 100%;
+      background-color: var(--primary-color);
+      transition: width 0.1s linear;
+    }
+  }
+
+  .player-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 12px;
+    height: calc(var(--player-height) - var(--progress-height));
+
+    .track-info {
+      display: flex;
+      align-items: center;
+      max-width: 40%;
+
+      ion-thumbnail {
+        width: 48px;
+        height: 48px;
+        margin-right: 12px;
+        border-radius: 4px;
+        overflow: hidden;
+      }
+
+      .text-info {
+        overflow: hidden;
+
+        .track-title {
+          font-weight: 500;
+          font-size: 14px;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
+        .track-artist {
+          font-size: 12px;
+          color: var(--secondary-text-light);
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+
+          .dark-theme & {
+            color: var(--secondary-text-dark);
+          }
+        }
+      }
+    }
+
+    .playback-controls {
+      display: flex;
+      align-items: center;
+
+      ion-button {
+        --padding-start: 8px;
+        --padding-end: 8px;
+
+        &:nth-child(2) {
+          --padding-start: 12px;
+          --padding-end: 12px;
+
+          ion-icon {
+            font-size: 24px;
+          }
+        }
+      }
+    }
+
+    .time-display {
+      font-size: 12px;
+      color: var(--secondary-text-light);
+      min-width: 80px;
+      text-align: right;
+
+      .dark-theme & {
+        color: var(--secondary-text-dark);
+      }
+    }
+  }
+}
+
+/* Tab bar modifications to work with player */
+ion-tab-bar {
+  transition: all 0.3s ease;
+
+  &.dark-theme {
+    --background: var(--player-background-dark);
+    --color: var(--secondary-text-dark);
+
+    ion-tab-button {
+      --color-selected: var(--primary-color-dark);
+    }
+  }
+
+  ion-tab-button {
+    --color-selected: var(--primary-color);
+  }
+}
+
+/* Adjust main content padding to make room for player */
+:host ::ng-deep ion-content {
+  // When player is visible
+  &.player-visible {
+    --padding-bottom: calc(var(--ion-tab-bar-height, 56px) + var(--player-height));
+  }
+}

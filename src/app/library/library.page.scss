@@ -1,0 +1,197 @@
+/* library.page.scss */
+@import "~bootstrap/scss/bootstrap";
+
+:host {
+  --card-background-light: #ffffff;
+  --card-background-dark: #2d2d2d;
+  --primary-color: #6200EA;
+  --primary-color-dark: #BB86FC;
+}
+
+.dark-header {
+  --background: #1e1e1e;
+  --color: #ffffff;
+}
+
+.dark-content {
+  --background: #121212;
+  --color: #ffffff;
+}
+
+.dark-list {
+  background: transparent;
+}
+
+.dark-item {
+  --background: #2d2d2d;
+  --color: #ffffff;
+
+  ion-note {
+    color: #bbbbbb;
+  }
+}
+
+.content-container {
+  padding: 16px;
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 0;
+
+  ion-spinner {
+    margin-bottom: 12px;
+  }
+
+  p {
+    color: var(--ion-color-medium);
+  }
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+
+  h2 {
+    font-size: 22px;
+    font-weight: 700;
+    margin: 0;
+  }
+}
+
+ion-list {
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 16px;
+
+  ion-item {
+    --padding-start: 12px;
+    --inner-padding-end: 12px;
+
+    ion-thumbnail {
+      --border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: var(--ion-color-light);
+
+      .dark-content & {
+        background-color: #3d3d3d;
+      }
+
+      .thumbnail-icon {
+        font-size: 24px;
+        color: var(--ion-color-medium);
+      }
+    }
+
+    .track-info {
+      display: flex;
+      align-items: center;
+      font-size: 12px;
+      color: var(--ion-color-medium);
+
+      .source-label {
+        margin-right: 8px;
+      }
+
+      .format-badge {
+        font-size: 10px;
+        background-color: var(--ion-color-light);
+        color: var(--ion-color-medium);
+        padding: 2px 6px;
+        border-radius: 10px;
+        text-transform: uppercase;
+
+        .dark-content & {
+          background-color: #3d3d3d;
+          color: #bbbbbb;
+        }
+      }
+    }
+  }
+}
+
+.playlist-thumbnail {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--ion-color-tertiary) 100%);
+
+  .dark-content & {
+    background: linear-gradient(135deg, var(--primary-color-dark) 0%, var(--ion-color-tertiary) 100%);
+  }
+
+  &.large {
+    width: 120px;
+    height: 120px;
+    border-radius: 8px;
+  }
+
+  .playlist-icon {
+    color: white;
+    font-size: 24px;
+
+    .large & {
+      font-size: 48px;
+    }
+  }
+}
+
+.playlist-header {
+  margin-bottom: 24px;
+
+  .playlist-info {
+    display: flex;
+    align-items: center;
+
+    .playlist-details {
+      margin-left: 16px;
+
+      h2 {
+        font-size: 24px;
+        font-weight: 700;
+        margin-bottom: 4px;
+      }
+
+      p {
+        margin: 4px 0;
+        color: var(--ion-color-medium);
+      }
+
+      ion-button {
+        margin-top: 8px;
+      }
+    }
+  }
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 32px 16px;
+  background-color: var(--card-background-light);
+  border-radius: 8px;
+  text-align: center;
+
+  .dark-content & {
+    background-color: var(--card-background-dark);
+  }
+
+  ion-icon {
+    font-size: 48px;
+    color: var(--ion-color-medium);
+    margin-bottom: 16px;
+  }
+
+  p {
+    margin-bottom: 16px;
+    color: var(--ion-color-medium);
+  }
+}

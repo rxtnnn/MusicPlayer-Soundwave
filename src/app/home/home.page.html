@@ -1,20 +1,110 @@
-<ion-header [translucent]="true">
+<!-- home.page.html -->
+<ion-header [translucent]="true" [class.dark-header]="isDarkMode$ | async">
   <ion-toolbar>
     <ion-title>
-      Blank
+      <div class="app-title">
+        <ion-icon name="musical-notes"></ion-icon>
+        Melodify
+      </div>
     </ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="addLocalMusic()">
+        <ion-icon name="add-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">Blank</ion-title>
-    </ion-toolbar>
-  </ion-header>
+<ion-content [fullscreen]="true" [class.dark-content]="isDarkMode$ | async">
+  <ion-refresher slot="fixed" (ionRefresh)="refreshTrendingTracks($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
 
-  <div id="container">
-    <strong>Ready to create an app?</strong>
-    <p>Start with Ionic <a target="_blank" rel="noopener noreferrer" href="https://ionicframework.com/docs/components">UI Components</a></p>
+  <!-- Loading Indicator -->
+  <div class="loading-container" *ngIf="isLoading">
+    <ion-spinner></ion-spinner>
+    <p>Loading music...</p>
+  </div>
+
+  <div class="content-container">
+    <!-- Trending from Audius -->
+    <section class="music-section">
+      <h2>Trending</h2>
+      <div class="track-grid" *ngIf="streamingTracks.length > 0">
+        <div class="track-card" *ngFor="let track of streamingTracks" (click)="playTrack(track)">
+          <div class="track-artwork">
+            <img [src]="track.artwork || 'assets/default-album.png'" alt="Album Art">
+            <div class="play-overlay">
+              <ion-icon name="play"></ion-icon>
+            </div>
+          </div>
+          <div class="track-info">
+            <div class="track-title">{{ track.title }}</div>
+            <div class="track-artist">{{ track.artist }}</div>
+          </div>
+        </div>
+      </div>
+      <div class="empty-state" *ngIf="streamingTracks.length === 0 && !isLoading">
+        <ion-icon name="cloud-offline"></ion-icon>
+        <p>Couldn't load trending tracks</p>
+        <ion-button size="small" (click)="loadTrendingTracks()">Retry</ion-button>
+      </div>
+    </section>
+
+    <!-- Recently Played -->
+    <section class="music-section" *ngIf="recentlyPlayed.length > 0">
+      <h2>Recently Played</h2>
+      <ion-list>
+        <ion-item *ngFor="let track of recentlyPlayed.slice(0, 5)"
+                 (click)="playTrack(track)"
+                 [class.dark-item]="isDarkMode$ | async">
+          <ion-thumbnail slot="start">
+            <img [src]="track.artwork || 'assets/default-album.png'" alt="Album Art">
+          </ion-thumbnail>
+          <ion-label>
+            <h3>{{ track.title }}</h3>
+            <p>{{ track.artist }}</p>
+          </ion-label>
+          <ion-note slot="end" *ngIf="track.duration">
+            {{ track.duration | date:'mm:ss' }}
+          </ion-note>
+        </ion-item>
+      </ion-list>
+    </section>
+
+    <!-- Local Music -->
+    <section class="music-section">
+      <div class="section-header">
+        <h2>Your Music</h2>
+        <ion-button size="small" fill="clear" (click)="addLocalMusic()">
+          <ion-icon name="add" slot="start"></ion-icon>
+          Add Files
+        </ion-button>
+      </div>
+
+      <ion-list *ngIf="localTracks.length > 0">
+        <ion-item *ngFor="let track of localTracks"
+                 (click)="playTrack(track)"
+                 [class.dark-item]="isDarkMode$ | async">
+          <ion-thumbnail slot="start">
+            <ion-icon name="musical-note" class="thumbnail-icon"></ion-icon>
+          </ion-thumbnail>
+          <ion-label>
+            <h3>{{ track.title }}</h3>
+            <p>{{ track.artist }}</p>
+            <p class="track-format">{{ track.format.toUpperCase() }}</p>
+          </ion-label>
+          <ion-note slot="end" *ngIf="track.duration">
+            {{ track.duration | date:'mm:ss' }}
+          </ion-note>
+        </ion-item>
+      </ion-list>
+
+      <div class="empty-state" *ngIf="localTracks.length === 0">
+        <ion-icon name="document-outline"></ion-icon>
+        <p>No local music files yet</p>
+        <ion-button (click)="addLocalMusic()">Add Music</ion-button>
+      </div>
+    </section>
   </div>
 </ion-content>

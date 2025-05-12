@@ -1,13 +1,108 @@
-<ion-header [translucent]="true">
+<!-- search.page.html -->
+<ion-header [translucent]="true" [class.dark-header]="isDarkMode$ | async">
   <ion-toolbar>
-    <ion-title>search</ion-title>
+    <ion-searchbar
+      #searchBar
+      placeholder="Search songs, artists, or albums"
+      (ionInput)="search($event)"
+      [value]="searchQuery"
+      (ionClear)="clearSearch()"
+      animated="true"
+      show-cancel-button="focus"
+      [class.dark-searchbar]="isDarkMode$ | async">
+    </ion-searchbar>
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">search</ion-title>
-    </ion-toolbar>
-  </ion-header>
+<ion-content [fullscreen]="true" [class.dark-content]="isDarkMode$ | async">
+  <!-- Loading indicator -->
+  <div class="loading-container" *ngIf="isLoading">
+    <ion-spinner></ion-spinner>
+    <p>Searching music...</p>
+  </div>
+
+  <!-- Initial browse state when no search -->
+  <div class="content-container" *ngIf="!searchQuery && !isLoading">
+    <section class="browse-section">
+      <h2>Browse Genres</h2>
+      <div class="genre-grid">
+        <div
+          class="genre-card"
+          *ngFor="let genre of genres"
+          [style.background-color]="genre.color"
+          (click)="searchGenre(genre.name)">
+          <span class="genre-name">{{ genre.name }}</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="browse-section">
+      <h2>Popular Searches</h2>
+      <ion-list [class.dark-list]="isDarkMode$ | async">
+        <ion-item
+          *ngFor="let term of ['Top Hits', 'New Releases', 'Trending', 'Workout Mix', 'Chill Vibes']"
+          (click)="searchBar.value = term; search({detail: {value: term}})"
+          [class.dark-item]="isDarkMode$ | async">
+          <ion-icon name="search-outline" slot="start"></ion-icon>
+          <ion-label>{{ term }}</ion-label>
+        </ion-item>
+      </ion-list>
+    </section>
+  </div>
+
+  <!-- Search results -->
+  <div class="content-container" *ngIf="searchQuery && !isLoading">
+    <!-- Segment control for filter -->
+    <ion-segment
+      [value]="activeSegment"
+      (ionChange)="segmentChanged($event)"
+      [class.dark-segment]="isDarkMode$ | async">
+      <ion-segment-button value="all">
+        <ion-label>All</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="local">
+        <ion-label>Local</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="streaming">
+        <ion-label>Streaming</ion-label>
+      </ion-segment-button>
+    </ion-segment>
+
+    <!-- Results count -->
+    <div class="results-count" *ngIf="searchResults.length > 0">
+      {{ searchResults.length }} {{ searchResults.length === 1 ? 'result' : 'results' }} found
+    </div>
+
+    <!-- Results list -->
+    <ion-list [class.dark-list]="isDarkMode$ | async" *ngIf="searchResults.length > 0">
+      <ion-item
+        *ngFor="let track of searchResults"
+        (click)="playTrack(track)"
+        [class.dark-item]="isDarkMode$ | async">
+        <ion-thumbnail slot="start">
+          <img *ngIf="track.artwork" [src]="track.artwork" alt="Album Art">
+          <ion-icon *ngIf="!track.artwork" name="musical-note" class="thumbnail-icon"></ion-icon>
+        </ion-thumbnail>
+        <ion-label>
+          <h3>{{ track.title }}</h3>
+          <p>{{ track.artist }}</p>
+          <p class="track-source">
+            <ion-icon [name]="track.isLocal ? 'phone-portrait' : 'cloud'"></ion-icon>
+            {{ track.isLocal ? 'Local' : 'Streaming' }}
+            <span *ngIf="track.format" class="format-badge">{{ track.format }}</span>
+          </p>
+        </ion-label>
+        <ion-note slot="end" *ngIf="track.duration">
+          {{ track.duration | date:'mm:ss' }}
+        </ion-note>
+      </ion-item>
+    </ion-list>
+
+    <!-- Empty state -->
+    <div class="empty-state" *ngIf="searchResults.length === 0 && searchQuery">
+      <ion-icon name="search-outline"></ion-icon>
+      <p>No results found for "{{ searchQuery }}"</p>
+      <ion-button size="small" (click)="clearSearch()">Clear Search</ion-button>
+    </div>
+  </div>
 </ion-content>
